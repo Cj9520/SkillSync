@@ -1,0 +1,154 @@
+<!--
+Seamless, abstract SVG background for a tech company's website.
+Theme: AI, data processing, and network connections via flowing lines, nodes, and soft packets.
+Colors: background #f8f9fa, primary #4285F4, accent #34A853.
+Seamless tiling: edges connect cleanly; use patternUnits="userSpaceOnUse".
+Recommended usage (CSS):
+  body { background: url('background.svg') repeat; background-size: 600px 400px; }
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400">
+  <defs>
+    <!-- Subtle noise/texture for depth -->
+    <filter id="grain" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" stitchTiles="stitch" result="noise"/>
+      <feColorMatrix type="matrix" values="
+        0 0 0 0 0
+        0 0 0 0 0
+        0 0 0 0 0
+        0 0 0 0.06 0" result="faint"/>
+      <feBlend in="SourceGraphic" in2="faint" mode="overlay"/>
+    </filter>
+
+    <!-- Thin, tapered strokes for flowing lines -->
+    <linearGradient id="lineFadeBlue" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#4285F4" stop-opacity="0.0"/>
+      <stop offset="15%" stop-color="#4285F4" stop-opacity="0.8"/>
+      <stop offset="85%" stop-color="#4285F4" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#4285F4" stop-opacity="0.0"/>
+    </linearGradient>
+
+    <linearGradient id="lineFadeTeal" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#34A853" stop-opacity="0.0"/>
+      <stop offset="15%" stop-color="#34A853" stop-opacity="0.7"/>
+      <stop offset="85%" stop-color="#34A853" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#34A853" stop-opacity="0.0"/>
+    </linearGradient>
+
+    <!-- Soft node glow -->
+    <radialGradient id="nodeGlowBlue" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#4285F4" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#4285F4" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="nodeGlowTeal" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#34A853" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#34A853" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Soft rectangle "data packet" fill -->
+    <linearGradient id="packetFill" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4285F4" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#4285F4" stop-opacity="0.02"/>
+    </linearGradient>
+
+    <!-- Reusable stroke styles -->
+    <style>
+      .flow { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .blue { stroke: #4285F4; }
+      .thin { stroke-width: 0.9; }
+      .mid { stroke-width: 1.2; }
+      .node { fill: #f8f9fa; }
+      .packet { fill: url(#packetFill); }
+      .packet-stroke { stroke: #4285F4; stroke-opacity: 0.25; }
+      .accent { fill: #34A853; }
+      .accent-stroke { stroke: #34A853; stroke-opacity: 0.4; }
+      .ghost { opacity: 0.6; }
+    </style>
+
+    <!-- Define a seamless pattern tile -->
+    <pattern id="bgPattern" x="0" y="0" width="600" height="400" patternUnits="userSpaceOnUse">
+      <!-- Background -->
+      <rect width="600" height="400" fill="#f8f9fa"/>
+
+      <!-- Flowing primary paths (ensure start/end meet tile edges for seamless repeat) -->
+      <!-- Horizontal arcs -->
+      <path class="flow thin" stroke="url(#lineFadeBlue)"
+            d="M 0,80 C 120,40 240,120 360,80 C 480,40 520,80 600,60" />
+      <path class="flow mid ghost" stroke="url(#lineFadeBlue)"
+            d="M 0,200 C 100,230 220,170 340,210 C 460,250 520,210 600,240" />
+      <path class="flow thin" stroke="url(#lineFadeTeal)"
+            d="M 0,330 C 140,300 260,360 380,320 C 500,280 540,320 600,300" />
+
+      <!-- Diagonal sweeps that wrap cleanly -->
+      <path class="flow thin" stroke="url(#lineFadeBlue)"
+            d="M 0,10 C 80,30 120,70 180,110 C 260,160 340,220 420,270 C 500,320 560,360 600,390" />
+      <path class="flow thin ghost" stroke="url(#lineFadeTeal)"
+            d="M 0,370 C 60,340 120,310 200,270 C 300,220 420,190 520,150 C 560,130 580,110 600,90" />
+
+      <!-- Subtle vertical undulations to suggest layered processing -->
+      <path class="flow thin" stroke="#4285F4" stroke-opacity="0.25"
+            d="M 100,0 C 110,60 110,140 100,200 C 90,260 90,330 100,400" />
+      <path class="flow thin" stroke="#4285F4" stroke-opacity="0.18"
+            d="M 500,0 C 490,70 490,150 500,210 C 510,270 510,330 500,400" />
+
+      <!-- Soft "data packets" with rounded corners -->
+      <g>
+        <rect x="80" y="120" rx="10" ry="10" width="70" height="26" class="packet packet-stroke"/>
+        <rect x="420" y="60" rx="12" ry="12" width="90" height="28" class="packet packet-stroke"/>
+        <rect x="320" y="280" rx="10" ry="10" width="60" height="22" class="packet packet-stroke"/>
+        <rect x="520" y="210" rx="9" ry="9" width="56" height="22" class="packet packet-stroke"/>
+        <rect x="-10" y="40" rx="10" ry="10" width="60" height="22" class="packet packet-stroke"/>
+        <rect x="560" y="340" rx="10" ry="10" width="60" height="22" class="packet packet-stroke"/>
+      </g>
+
+      <!-- Nodes (circles) with faint glows to imply connection points -->
+      <g>
+        <!-- Blue nodes -->
+        <g>
+          <circle cx="160" cy="90" r="2.2" fill="#4285F4"/>
+          <circle cx="160" cy="90" r="10" fill="url(#nodeGlowBlue)"/>
+          <circle cx="380" cy="80" r="2.2" fill="#4285F4"/>
+          <circle cx="380" cy="80" r="10" fill="url(#nodeGlowBlue)"/>
+          <circle cx="300" cy="210" r="2.2" fill="#4285F4"/>
+          <circle cx="300" cy="210" r="10" fill="url(#nodeGlowBlue)"/>
+          <circle cx="480" cy="240" r="2.2" fill="#4285F4"/>
+          <circle cx="480" cy="240" r="10" fill="url(#nodeGlowBlue)"/>
+        </g>
+        <!-- Teal accent nodes -->
+        <g>
+          <circle cx="200" cy="270" r="2.2" fill="#34A853"/>
+          <circle cx="200" cy="270" r="10" fill="url(#nodeGlowTeal)"/>
+          <circle cx="520" cy="150" r="2.2" fill="#34A853"/>
+          <circle cx="520" cy="150" r="10" fill="url(#nodeGlowTeal)"/>
+          <circle cx="40" cy="40" r="2.2" fill="#34A853"/>
+          <circle cx="40" cy="40" r="10" fill="url(#nodeGlowTeal)"/>
+          <circle cx="580" cy="360" r="2.2" fill="#34A853"/>
+          <circle cx="580" cy="360" r="10" fill="url(#nodeGlowTeal)"/>
+        </g>
+      </g>
+
+      <!-- Connection micro-lines between nodes (suggest matching/analysis) -->
+      <g stroke="#4285F4" stroke-opacity="0.35" stroke-width="0.8" fill="none">
+        <path d="M 160,90 Q 210,130 200,270" />
+        <path d="M 380,80 Q 450,120 520,150" />
+        <path d="M 300,210 Q 390,230 480,240" />
+        <path d="M 40,40 Q 100,70 160,90" />
+        <path d="M 580,360 Q 540,300 520,150" />
+      </g>
+
+      <!-- Dotted hints along flows to imply discretized data packets -->
+      <g fill="#4285F4" fill-opacity="0.6">
+        <circle cx="120" cy="78" r="1" />
+        <circle cx="210" cy="100" r="1" />
+        <circle cx="260" cy="125" r="1" />
+        <circle cx="350" cy="95" r="1" />
+        <circle cx="460" cy="220" r="1" />
+        <circle cx="520" cy="230" r="1" />
+        <circle cx="380" cy="318" r="1" />
+        <circle cx="430" cy="300" r="1" />
+      </g>
+    </pattern>
+  </defs>
+
+  <!-- Apply pattern and subtle grain -->
+  <rect width="600" height="400" fill="url(#bgPattern)" filter="url(#grain)"/>
+</svg>
