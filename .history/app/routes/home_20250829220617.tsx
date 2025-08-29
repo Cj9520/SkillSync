@@ -9,7 +9,7 @@ import { Link, useNavigate } from "react-router";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "SkillSync" },
+    { title: "Sync" },
     { name: "description", content: "Smart feedback for your dream job" },
   ];
 }
