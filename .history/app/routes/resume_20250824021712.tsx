@@ -7,7 +7,7 @@ import { usePuterStore } from "~/lib/puter";
 
 export const meta = () => {
   [
-    { title: "SkillSync | Review" },
+    { title: "JobSync | Review" },
     { name: "description", content: "Detailed overview of your Resume" },
   ];
 };
