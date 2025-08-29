@@ -3,7 +3,7 @@ import { usePuterStore } from "~/lib/puter"
 import { useLocation, useNavigate } from "react-router";
 
 export const meta = () => {[
-  {title: 'SkillSync | Auth'},
+  {title: 'SkiSync | Auth'},
   {name: 'description', content: 'Log into your account'},
 ]}
 

@@ -9,37 +9,6 @@ import {
 
 import type { Route } from "./+types/root";
 import "./app.css";
-import { usePuterStore } from "./lib/puter";
-import { useEffect } from "react";
-
-// Google Analytics component
-function GoogleAnalytics() {
-  useEffect(() => {
-    // Load Google Analytics script
-    const script1 = document.createElement("script");
-    script1.async = true;
-    script1.src = "https://www.googletagmanager.com/gtag/js?id=G-6848VP4244";
-    document.head.appendChild(script1);
-
-    // Initialize Google Analytics
-    const script2 = document.createElement("script");
-    script2.innerHTML = `
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-6848VP4244');
-    `;
-    document.head.appendChild(script2);
-
-    // Cleanup function
-    return () => {
-      document.head.removeChild(script1);
-      document.head.removeChild(script2);
-    };
-  }, []);
-
-  return null;
-}
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -55,12 +24,6 @@ export const links: Route.LinksFunction = () => [
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  const { init } = usePuterStore();
-
-  useEffect(() => {
-    init();
-  }, [init]);
-
   return (
     <html lang="en">
       <head>
@@ -68,10 +31,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
-        <GoogleAnalytics />
       </head>
       <body>
-        <script src="https://js.puter.com/v2/"></script>
         {children}
         <ScrollRestoration />
         <Scripts />
