@@ -66,19 +66,12 @@ const Resume = () => {
         const imageUrl = URL.createObjectURL(imageBlob);
         setImageUrl(imageUrl);
         console.log('Image URL set:', imageUrl);
-        
-        // Set feedback data
-        setFeedback(data.feedback);
-        console.log('Feedback data loaded:', data.feedback);
-        
-        console.log('Resume data fully loaded:', { resumeUrl, imageUrl, feedback: data.feedback });
-      } catch (error) {
-        console.error('Error loading resume data:', error);
-      }
+      setFeedback(data.feedback);
+
+      console.log({resumeUrl,imageUrl, feedback:data.feedback})
     };
-    
-    loadResume();
-  }, [id, fs, kv]);
+  loadResume();
+  }, [id]);
 
   return (
     <main className="!pt-0">
@@ -91,37 +84,28 @@ const Resume = () => {
         </Link>
       </nav>
       <div className="flex flex-row w-full max-lg:flex-col-reverse">
-        <section className="feedback-section bg-[url('/images/bg-small.svg')] bg-cover h-[100vh] sticky top-0 items-center justify-center">
-          {imageUrl && resumeUrl && (
-            <div className="animate-in fade-in duration-1000 gradient-border max-sm:m-0 h-[90%] max-2xl:h-fit w-fit">
-              {/* PDF viewer */}
-              <div className="relative">
-                {/* PDF iframe for actual content viewing */}
-                <iframe
-                  src={resumeUrl}
-                  className="w-full h-[600px] rounded-2xl bg-white"
-                  title="Resume PDF"
-                  style={{ border: 'none' }}
-                ></iframe>
-                
-                {/* Controls for PDF */}
-                <div className="mt-4 flex justify-between items-center">
-                  <a href={resumeUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                    Open PDF in new tab
-                  </a>
-                  
-                  {/* Download button */}
-                  <a 
-                    href={resumeUrl} 
-                    download="resume.pdf" 
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    Download PDF
-                  </a>
-                </div>
+        <section className="feedback-section bg-[url('/images/bg-small.svg) bg-cover h-[100vh] sticky top-0 items-center justify-center">
+          {imageUrl && resumeUrl &&(
+          <div className="animate-in fade-in duration-1000 gradient-boarder max-sm:m-0 h-[90%] max-2xl:h-fit w-fit">
+            {/* Show both PDF viewer and image preview */}
+            <div className="relative">
+              {/* PDF iframe for actual content viewing */}
+              <iframe
+                src={resumeUrl}
+                className="w-full h-[600px] rounded-2xl"
+                title="Resume PDF"
+                style={{border: 'none'}}
+              ></iframe>
+              
+              {/* Fallback to image if iframe doesn't work */}
+              <div className="mt-4">
+                <a href={resumeUrl} target="blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  Open PDF in new tab
+                </a>
               </div>
             </div>
-          )}
+          </div>
+        )}
         
         
         

@@ -93,32 +93,30 @@ const Resume = () => {
       <div className="flex flex-row w-full max-lg:flex-col-reverse">
         <section className="feedback-section bg-[url('/images/bg-small.svg')] bg-cover h-[100vh] sticky top-0 items-center justify-center">
           {imageUrl && resumeUrl && (
-            <div className="animate-in fade-in duration-1000 gradient-border max-sm:m-0 h-[90%] max-2xl:h-fit w-fit">
-              {/* PDF viewer */}
-              <div className="relative">
-                {/* PDF iframe for actual content viewing */}
-                <iframe
-                  src={resumeUrl}
-                  className="w-full h-[600px] rounded-2xl bg-white"
-                  title="Resume PDF"
-                  style={{ border: 'none' }}
-                ></iframe>
+            <div className="animate-in fade-in duration-1000 max-sm:m-0 h-[90%] max-2xl:h-fit w-fit flex flex-col items-center">
+              {/* Clean resume image display */}
+              <div className="bg-white rounded-lg p-4 shadow-lg">
+                <img
+                  src={imageUrl}
+                  alt="Resume Preview"
+                  className="max-h-[calc(100vh-120px)] object-contain"
+                />
+              </div>
+              
+              {/* Controls for PDF */}
+              <div className="mt-4 flex justify-between items-center w-full">
+                <a href={resumeUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  Open PDF in new tab
+                </a>
                 
-                {/* Controls for PDF */}
-                <div className="mt-4 flex justify-between items-center">
-                  <a href={resumeUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                    Open PDF in new tab
-                  </a>
-                  
-                  {/* Download button */}
-                  <a 
-                    href={resumeUrl} 
-                    download="resume.pdf" 
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    Download PDF
-                  </a>
-                </div>
+                {/* Download button */}
+                <a 
+                  href={resumeUrl} 
+                  download="resume.pdf" 
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Download PDF
+                </a>
               </div>
             </div>
           )}

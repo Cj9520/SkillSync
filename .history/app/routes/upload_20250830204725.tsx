@@ -37,62 +37,29 @@ const Upload = () => {
                 return;
             }
             
-            // Create a simple image representation of the PDF for thumbnails
+            // Create a PDF preview image for display
             setStatusText('Generating PDF preview...');
             
-            // Create a simple placeholder image
-            const canvas = document.createElement('canvas');
-            canvas.width = 800;
-            canvas.height = 1100;
-            const ctx = canvas.getContext('2d');
+            // Try the fallback method directly for better performance
+            let previewResult = await convertPdfToImageFallback(file);
             
-            if (ctx) {
-                // Create a nice-looking PDF preview
-                ctx.fillStyle = '#f8f9fa';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                // Header area
-                ctx.fillStyle = '#4263eb';
-                ctx.fillRect(0, 0, canvas.width, 120);
-                
-                // Title
-                ctx.fillStyle = 'white';
-                ctx.font = 'bold 28px Arial';
-                ctx.textAlign = 'left';
-                ctx.fillText('Resume', 40, 70);
-                
-                // File name
-                const displayName = file.name.length > 30 ? file.name.substring(0, 27) + '...' : file.name;
-                ctx.font = '16px Arial';
-                ctx.fillText(displayName, 40, 100);
-                
-                // Create lines to represent content
-                ctx.fillStyle = '#dee2e6';
-                for (let i = 0; i < 8; i++) {
-                    const y = 180 + (i * 50);
-                    ctx.fillRect(40, y, canvas.width - 80, 24);
-                    if (i < 6) {
-                        ctx.fillRect(40, y + 30, (canvas.width - 80) / 2, 12);
-                    }
-                }
-            }
+            // Only try PDF.js if explicitly needed (disabled for now due to performance issues)
+            // if (someCondition) {
+            //     try {
+            //         previewResult = await convertPdfToImage(file);
+            //     } catch (error) {
+            //         console.error('PDF.js conversion failed:', error);
+            //     }
+            // }
             
-            // Convert canvas to blob
-            const blob = await new Promise<Blob | null>((resolve) => {
-                canvas.toBlob((b) => resolve(b), 'image/png', 1.0);
-            });
-            
-            if (!blob) {
+            if (!previewResult.file) {
                 setStatusText('Error: Failed to generate preview image');
                 return;
             }
             
-            // Create an image file for the thumbnail
-            const imageFile = new File([blob], file.name.replace(/\.pdf$/i, '') + '.png', { type: 'image/png' });
-            
-            // Upload the image
+            // Upload the preview image
             setStatusText('Uploading the preview image...');
-            const uploadedImage = await fs.upload([imageFile]);
+            const uploadedImage = await fs.upload([previewResult.file]);
             if(!uploadedImage) {
                 setStatusText('Error: Failed to upload preview image');
                 return;

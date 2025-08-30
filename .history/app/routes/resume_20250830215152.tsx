@@ -93,13 +93,13 @@ const Resume = () => {
       <div className="flex flex-row w-full max-lg:flex-col-reverse">
         <section className="feedback-section bg-[url('/images/bg-small.svg')] bg-cover h-[100vh] sticky top-0 items-center justify-center">
           {imageUrl && resumeUrl && (
-            <div className="animate-in fade-in duration-1000 gradient-border max-sm:m-0 h-[90%] max-2xl:h-fit w-fit">
+            <div className="animate-in fade-in duration-1000 gradient-border max-sm:m-0 h-auto max-2xl:h-fit w-fit mx-auto">
               {/* PDF viewer */}
               <div className="relative">
                 {/* PDF iframe for actual content viewing */}
                 <iframe
                   src={resumeUrl}
-                  className="w-full h-[600px] rounded-2xl bg-white"
+                  className="w-full h-[700px] rounded-2xl bg-white shadow-lg"
                   title="Resume PDF"
                   style={{ border: 'none' }}
                 ></iframe>

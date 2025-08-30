@@ -4,7 +4,6 @@ import FileUploader from "~/components/FileUploader";
 import {usePuterStore} from "~/lib/puter";
 import {useNavigate} from "react-router";
 import {convertPdfToImage} from "~/lib/pdf2img";
-import {convertPdfToImageFallback} from "~/lib/fallback-pdf2img";
 import {generateUUID} from "~/lib/utils";
 import {prepareInstructions} from "../../constants";
 
@@ -27,74 +26,18 @@ const Upload = () => {
         const uploadedFile = await fs.upload([file]);
         if(!uploadedFile) return setStatusText('Error: Failed to upload file');
 
-        setStatusText('Processing PDF...');
+        setStatusText('Converting to image...');
         try {
-            // Upload the PDF file as is
-            setStatusText('Uploading PDF file...');
-            const uploadedFile = await fs.upload([file]);
-            if(!uploadedFile) {
-                setStatusText('Error: Failed to upload file');
+            const imageFile = await convertPdfToImage(file);
+            if(!imageFile.file) {
+                setStatusText(`Error: Failed to convert PDF to image. ${imageFile.error || ''}`);
                 return;
             }
-            
-            // Create a simple image representation of the PDF for thumbnails
-            setStatusText('Generating PDF preview...');
-            
-            // Create a simple placeholder image
-            const canvas = document.createElement('canvas');
-            canvas.width = 800;
-            canvas.height = 1100;
-            const ctx = canvas.getContext('2d');
-            
-            if (ctx) {
-                // Create a nice-looking PDF preview
-                ctx.fillStyle = '#f8f9fa';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                // Header area
-                ctx.fillStyle = '#4263eb';
-                ctx.fillRect(0, 0, canvas.width, 120);
-                
-                // Title
-                ctx.fillStyle = 'white';
-                ctx.font = 'bold 28px Arial';
-                ctx.textAlign = 'left';
-                ctx.fillText('Resume', 40, 70);
-                
-                // File name
-                const displayName = file.name.length > 30 ? file.name.substring(0, 27) + '...' : file.name;
-                ctx.font = '16px Arial';
-                ctx.fillText(displayName, 40, 100);
-                
-                // Create lines to represent content
-                ctx.fillStyle = '#dee2e6';
-                for (let i = 0; i < 8; i++) {
-                    const y = 180 + (i * 50);
-                    ctx.fillRect(40, y, canvas.width - 80, 24);
-                    if (i < 6) {
-                        ctx.fillRect(40, y + 30, (canvas.width - 80) / 2, 12);
-                    }
-                }
-            }
-            
-            // Convert canvas to blob
-            const blob = await new Promise<Blob | null>((resolve) => {
-                canvas.toBlob((b) => resolve(b), 'image/png', 1.0);
-            });
-            
-            if (!blob) {
-                setStatusText('Error: Failed to generate preview image');
-                return;
-            }
-            
-            // Create an image file for the thumbnail
-            const imageFile = new File([blob], file.name.replace(/\.pdf$/i, '') + '.png', { type: 'image/png' });
-            
-            // Upload the image
-            setStatusText('Uploading the preview image...');
-            const uploadedImage = await fs.upload([imageFile]);
+
+            setStatusText('Uploading the image...');
+            const uploadedImage = await fs.upload([imageFile.file]);
             if(!uploadedImage) {
-                setStatusText('Error: Failed to upload preview image');
+                setStatusText('Error: Failed to upload image');
                 return;
             }
 
@@ -102,11 +45,10 @@ const Upload = () => {
         const uuid = generateUUID();
         const data = {
             id: uuid,
-            resumePath: uploadedFile.path,  // This contains the actual PDF file
-            imagePath: uploadedImage.path,  // This contains the preview image
+            resumePath: uploadedFile.path,
+            imagePath: uploadedImage.path,
             companyName, jobTitle, jobDescription,
             feedback: '',
-            isPdfDirect: true  // Flag to indicate we're using direct PDF viewing
         }
         await kv.set(`resume:${uuid}`, JSON.stringify(data));
 
@@ -127,10 +69,6 @@ const Upload = () => {
         setStatusText('Analysis complete, redirecting...');
         console.log(data);
         navigate(`/resume/${uuid}`);
-        } catch (error) {
-            console.error('Error during analysis:', error);
-            setStatusText(`Error: ${error instanceof Error ? error.message : 'An unexpected error occurred'}`);
-        }
     }
 
     const handleSubmit = (e: FormEvent<HTMLFormElement>) => {

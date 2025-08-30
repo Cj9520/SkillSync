@@ -102,11 +102,10 @@ const Upload = () => {
         const uuid = generateUUID();
         const data = {
             id: uuid,
-            resumePath: uploadedFile.path,  // This contains the actual PDF file
-            imagePath: uploadedImage.path,  // This contains the preview image
+            resumePath: uploadedFile.path,
+            imagePath: uploadedImage.path,
             companyName, jobTitle, jobDescription,
             feedback: '',
-            isPdfDirect: true  // Flag to indicate we're using direct PDF viewing
         }
         await kv.set(`resume:${uuid}`, JSON.stringify(data));
 

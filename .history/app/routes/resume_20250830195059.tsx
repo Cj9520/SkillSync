@@ -4,6 +4,7 @@ import ATS from "~/components/ATS";
 import Details from "~/components/Details";
 import Summary from "~/components/Summary";
 import { usePuterStore } from "~/lib/puter";
+import "~/components/resume-preview.css";
 
 export const meta = () => {
   [
@@ -93,30 +94,49 @@ const Resume = () => {
       <div className="flex flex-row w-full max-lg:flex-col-reverse">
         <section className="feedback-section bg-[url('/images/bg-small.svg')] bg-cover h-[100vh] sticky top-0 items-center justify-center">
           {imageUrl && resumeUrl && (
-            <div className="animate-in fade-in duration-1000 gradient-border max-sm:m-0 h-[90%] max-2xl:h-fit w-fit">
-              {/* PDF viewer */}
-              <div className="relative">
-                {/* PDF iframe for actual content viewing */}
-                <iframe
-                  src={resumeUrl}
-                  className="w-full h-[600px] rounded-2xl bg-white"
-                  title="Resume PDF"
-                  style={{ border: 'none' }}
-                ></iframe>
+            <div className="animate-in fade-in duration-1000 max-sm:m-0 h-[90%] max-2xl:h-fit w-fit mx-auto">
+              {/* Enhanced PDF Viewer */}
+              <div className="pdf-viewer-container">
+                {/* PDF Viewer Toolbar */}
+                <div className="pdf-viewer-toolbar">
+                  <div></div> {/* Empty space for alignment */}
+                  <div className="flex space-x-2">
+                    <a href={resumeUrl} download="resume.pdf" className="toolbar-button">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                    </a>
+                    <button className="toolbar-button">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                      </svg>
+                    </button>
+                    <button className="toolbar-button">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
                 
-                {/* Controls for PDF */}
-                <div className="mt-4 flex justify-between items-center">
-                  <a href={resumeUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                    Open PDF in new tab
-                  </a>
-                  
-                  {/* Download button */}
+                {/* PDF Content - Using the image */}
+                <div className="pdf-viewer-content">
+                  <img 
+                    src={imageUrl}
+                    alt="Resume Preview" 
+                    className="pdf-viewer-preview"
+                  />
+                </div>
+                
+                {/* PDF Controls - Bottom */}
+                <div className="pdf-viewer-controls">
                   <a 
-                    href={resumeUrl} 
-                    download="resume.pdf" 
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                    href={resumeUrl}
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="pdf-viewer-link"
                   >
-                    Download PDF
+                    Open original PDF
                   </a>
                 </div>
               </div>

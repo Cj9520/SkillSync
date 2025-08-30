@@ -3,8 +3,7 @@ import Navbar from "~/components/Navbar";
 import FileUploader from "~/components/FileUploader";
 import {usePuterStore} from "~/lib/puter";
 import {useNavigate} from "react-router";
-import {convertPdfToImage} from "~/lib/pdf2img";
-import {convertPdfToImageFallback} from "~/lib/fallback-pdf2img";
+import {createRealisticPdfPreview} from "~/lib/fast-pdf-preview";
 import {generateUUID} from "~/lib/utils";
 import {prepareInstructions} from "../../constants";
 
@@ -23,13 +22,8 @@ const Upload = () => {
     const handleAnalyze = async ({ companyName, jobTitle, jobDescription, file }: { companyName: string, jobTitle: string, jobDescription: string, file: File  }) => {
         setIsProcessing(true);
 
-        setStatusText('Uploading the file...');
-        const uploadedFile = await fs.upload([file]);
-        if(!uploadedFile) return setStatusText('Error: Failed to upload file');
-
-        setStatusText('Processing PDF...');
         try {
-            // Upload the PDF file as is
+            // Upload the PDF file
             setStatusText('Uploading PDF file...');
             const uploadedFile = await fs.upload([file]);
             if(!uploadedFile) {
@@ -37,48 +31,116 @@ const Upload = () => {
                 return;
             }
             
-            // Create a simple image representation of the PDF for thumbnails
+            // Create a realistic preview image of the PDF
             setStatusText('Generating PDF preview...');
             
-            // Create a simple placeholder image
-            const canvas = document.createElement('canvas');
-            canvas.width = 800;
-            canvas.height = 1100;
-            const ctx = canvas.getContext('2d');
+            // Generate the preview using our dedicated function
+            const previewResult = await createRealisticPdfPreview(file);
             
-            if (ctx) {
-                // Create a nice-looking PDF preview
-                ctx.fillStyle = '#f8f9fa';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            if (!previewResult.file) {
+                setStatusText('Error: Failed to generate preview image');
+                return;
+            }
+            
+            // Upload the preview image
+            setStatusText('Uploading the preview image...');
+            const uploadedImage = await fs.upload([previewResult.file]);
+            if(!uploadedImage) {
+                setStatusText('Error: Failed to upload preview image');
+                return;
+            }
+
+            // Prepare data for storage
+            setStatusText('Preparing data...');
+            const uuid = generateUUID();
+            const data = {
+                id: uuid,
+                resumePath: uploadedFile.path,  // This contains the actual PDF file
+                imagePath: uploadedImage.path,  // This contains the preview image
+                companyName, 
+                jobTitle, 
+                jobDescription,
+                feedback: '',
+                isPdfDirect: true  // Flag to indicate we're using direct PDF viewing
+            }
+            
+            await kv.set(`resume:${uuid}`, JSON.stringify(data));
+
+            // Analyze the resume
+            setStatusText('Analyzing resume content...');
+            const feedback = await ai.feedback(
+                uploadedFile.path,
+                prepareInstructions({ jobTitle, jobDescription })
+            );
+            
+            if (!feedback) {
+                setStatusText('Error: Failed to analyze resume');
+                return;
+            }
+
+            // Parse feedback and update data
+            const feedbackText = typeof feedback.message.content === 'string'
+                ? feedback.message.content
+                : feedback.message.content[0].text;
+
+            data.feedback = JSON.parse(feedbackText);
+            await kv.set(`resume:${uuid}`, JSON.stringify(data));
+            
+            setStatusText('Analysis complete, redirecting...');
+            console.log('Resume data:', data);
+            
+            // Navigate to the resume view
+            navigate(`/resume/${uuid}`);
+        } catch (error) {
+            console.error('Error during analysis:', error);
+            setStatusText(`Error: ${error instanceof Error ? error.message : 'An unexpected error occurred'}`);
+        }
+    }
+                // The following block was referencing 'ctx' outside of a function or context where it is defined.
+                // It has been removed to fix the "Cannot find name 'ctx'" error.
+                // If you need this logic, ensure it is inside a function where 'ctx' is defined, such as after creating a canvas and getting its 2D context.
                 
-                // Header area
-                ctx.fillStyle = '#4263eb';
-                ctx.fillRect(0, 0, canvas.width, 120);
+                // Clean up
+                URL.revokeObjectURL(pdfUrl);
+                document.body.removeChild(tempDiv);
                 
-                // Title
-                ctx.fillStyle = 'white';
-                ctx.font = 'bold 28px Arial';
-                ctx.textAlign = 'left';
-                ctx.fillText('Resume', 40, 70);
+                return canvas;
+            } catch (previewError) {
+                console.error('Error creating PDF preview:', previewError);
                 
-                // File name
-                const displayName = file.name.length > 30 ? file.name.substring(0, 27) + '...' : file.name;
-                ctx.font = '16px Arial';
-                ctx.fillText(displayName, 40, 100);
+                // Fallback to simple canvas
+                const canvas = document.createElement('canvas');
+                canvas.width = 800;
+                canvas.height = 1100;
+                const ctx = canvas.getContext('2d');
                 
-                // Create lines to represent content
-                ctx.fillStyle = '#dee2e6';
-                for (let i = 0; i < 8; i++) {
-                    const y = 180 + (i * 50);
-                    ctx.fillRect(40, y, canvas.width - 80, 24);
-                    if (i < 6) {
-                        ctx.fillRect(40, y + 30, (canvas.width - 80) / 2, 12);
-                    }
+                if (ctx) {
+                    // Create a basic preview
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Add a border
+                    ctx.strokeStyle = '#dddddd';
+                    ctx.lineWidth = 5;
+                    ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+                    
+                    // Add file name
+                    const displayName = file.name.length > 30 ? file.name.substring(0, 27) + '...' : file.name;
+                    ctx.fillStyle = '#333333';
+                    ctx.font = 'bold 24px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('Resume', canvas.width / 2, 100);
+                    ctx.font = '16px Arial';
+                    ctx.fillText(displayName, canvas.width / 2, 130);
                 }
+                
+                return canvas;
             }
             
             // Convert canvas to blob
             const blob = await new Promise<Blob | null>((resolve) => {
+                // Use the canvas we created in the previous step
+                const canvas = await canvasPromise;
                 canvas.toBlob((b) => resolve(b), 'image/png', 1.0);
             });
             

@@ -14,27 +14,11 @@ async function loadPdfJs(): Promise<any> {
 
     isLoading = true;
     try {
-        // Dynamic import for pdfjsLib with detailed logging
-        console.log('Importing PDF.js...');
+        // Dynamic import for pdfjsLib
         const pdfjs = await import('pdfjs-dist');
-        console.log('PDF.js imported successfully, version:', pdfjs.version);
         
-        // Set worker source to a data URL to ensure it's available
-        // This is a minimal worker that should be sufficient for basic operations
-        const workerBlob = new Blob([`
-            // Minimal PDF.js worker
-            self.onmessage = function(e) {
-                console.log('Worker received message:', e.data);
-                if (e.data && e.data.action === 'test') {
-                    self.postMessage({ success: true, message: 'Worker initialized successfully' });
-                }
-            };
-        `], { type: 'application/javascript' });
-        
-        // Set the worker source to the created blob URL
-        const workerUrl = URL.createObjectURL(workerBlob);
-        console.log('Setting worker source to:', workerUrl);
-        pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+        // Use the local worker file that's included in the public directory
+        pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
         
         pdfjsLib = pdfjs;
         isLoading = false;
@@ -62,14 +46,7 @@ export async function convertPdfToImage(
         console.log('File read as ArrayBuffer, size:', arrayBuffer.byteLength);
         
         // Load document - ensure we're using the correct method
-        // Using the fake worker mode, so increase the timeout and disable worker usage
-        const loadingTask = lib.getDocument({
-            data: arrayBuffer,
-            disableAutoFetch: true,  // Disable streaming to improve reliability
-            disableStream: true,     // Disable streaming to improve reliability
-            nativeImageDecoderSupport: 'none'  // Don't try to use native decoders
-        });
-        
+        const loadingTask = lib.getDocument({ data: arrayBuffer });
         const pdf = await loadingTask.promise;
         console.log('PDF document loaded, pages:', pdf.numPages);
         

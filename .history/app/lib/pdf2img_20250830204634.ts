@@ -14,27 +14,14 @@ async function loadPdfJs(): Promise<any> {
 
     isLoading = true;
     try {
-        // Dynamic import for pdfjsLib with detailed logging
-        console.log('Importing PDF.js...');
+        // Use a more direct approach with fewer logs
+        console.log('Loading PDF.js...');
         const pdfjs = await import('pdfjs-dist');
-        console.log('PDF.js imported successfully, version:', pdfjs.version);
         
-        // Set worker source to a data URL to ensure it's available
-        // This is a minimal worker that should be sufficient for basic operations
-        const workerBlob = new Blob([`
-            // Minimal PDF.js worker
-            self.onmessage = function(e) {
-                console.log('Worker received message:', e.data);
-                if (e.data && e.data.action === 'test') {
-                    self.postMessage({ success: true, message: 'Worker initialized successfully' });
-                }
-            };
-        `], { type: 'application/javascript' });
-        
-        // Set the worker source to the created blob URL
-        const workerUrl = URL.createObjectURL(workerBlob);
-        console.log('Setting worker source to:', workerUrl);
-        pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+        // Use the pre-built worker from the public directory
+        // This is more efficient than creating a blob worker
+        pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+        console.log('PDF.js worker set to:', pdfjs.GlobalWorkerOptions.workerSrc);
         
         pdfjsLib = pdfjs;
         isLoading = false;
@@ -50,9 +37,6 @@ export async function convertPdfToImage(
     file: File
 ): Promise<PdfConversionResult> {
     try {
-        // Add a delay to ensure PDF.js is properly loaded
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
         console.log('Starting PDF conversion');
         const lib = await loadPdfJs();
         console.log('PDF.js loaded successfully');
@@ -61,25 +45,34 @@ export async function convertPdfToImage(
         const arrayBuffer = await file.arrayBuffer();
         console.log('File read as ArrayBuffer, size:', arrayBuffer.byteLength);
         
-        // Load document - ensure we're using the correct method
-        // Using the fake worker mode, so increase the timeout and disable worker usage
-        const loadingTask = lib.getDocument({
-            data: arrayBuffer,
-            disableAutoFetch: true,  // Disable streaming to improve reliability
-            disableStream: true,     // Disable streaming to improve reliability
-            nativeImageDecoderSupport: 'none'  // Don't try to use native decoders
+        // Set a timeout to prevent hanging on problematic PDFs
+        const timeoutPromise = new Promise<PdfConversionResult>((_, reject) => {
+            setTimeout(() => {
+                reject(new Error('PDF conversion timed out after 5 seconds'));
+            }, 5000);
         });
         
-        const pdf = await loadingTask.promise;
-        console.log('PDF document loaded, pages:', pdf.numPages);
+        // Load document with optimized settings
+        const loadingTask = lib.getDocument({
+            data: arrayBuffer,
+            cMapUrl: 'https://unpkg.com/pdfjs-dist@5.4.54/cmaps/',
+            cMapPacked: true,
+            disableAutoFetch: true,
+            disableStream: true,
+            rangeChunkSize: 65536,
+        });
         
-        // Get first page
-        const page = await pdf.getPage(1);
-        console.log('First page loaded');
+        // Race the document loading against our timeout
+        const pdfPromise = loadingTask.promise.then(async (pdf: any) => {
+            console.log('PDF document loaded, pages:', pdf.numPages);
+            
+            // Get first page
+            const page = await pdf.getPage(1);
+            console.log('First page loaded');
 
-        // Set viewport
-        const viewport = page.getViewport({ scale: 1.5 });
-        console.log('Viewport created:', viewport.width, 'x', viewport.height);
+            // Set viewport - reduce scale for better performance
+            const viewport = page.getViewport({ scale: 1.0 });
+            console.log('Viewport created:', viewport.width, 'x', viewport.height);
         
         // Create canvas
         const canvas = document.createElement("canvas");

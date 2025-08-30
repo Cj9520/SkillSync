@@ -14,27 +14,14 @@ async function loadPdfJs(): Promise<any> {
 
     isLoading = true;
     try {
-        // Dynamic import for pdfjsLib with detailed logging
-        console.log('Importing PDF.js...');
+        // Use a more direct approach with fewer logs
+        console.log('Loading PDF.js...');
         const pdfjs = await import('pdfjs-dist');
-        console.log('PDF.js imported successfully, version:', pdfjs.version);
         
-        // Set worker source to a data URL to ensure it's available
-        // This is a minimal worker that should be sufficient for basic operations
-        const workerBlob = new Blob([`
-            // Minimal PDF.js worker
-            self.onmessage = function(e) {
-                console.log('Worker received message:', e.data);
-                if (e.data && e.data.action === 'test') {
-                    self.postMessage({ success: true, message: 'Worker initialized successfully' });
-                }
-            };
-        `], { type: 'application/javascript' });
-        
-        // Set the worker source to the created blob URL
-        const workerUrl = URL.createObjectURL(workerBlob);
-        console.log('Setting worker source to:', workerUrl);
-        pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+        // Use the pre-built worker from the public directory
+        // This is more efficient than creating a blob worker
+        pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+        console.log('PDF.js worker set to:', pdfjs.GlobalWorkerOptions.workerSrc);
         
         pdfjsLib = pdfjs;
         isLoading = false;

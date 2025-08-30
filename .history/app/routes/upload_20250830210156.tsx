@@ -37,58 +37,123 @@ const Upload = () => {
                 return;
             }
             
-            // Create a simple image representation of the PDF for thumbnails
+            // Create a better PDF preview image using PDF.js if possible
             setStatusText('Generating PDF preview...');
             
-            // Create a simple placeholder image
-            const canvas = document.createElement('canvas');
-            canvas.width = 800;
-            canvas.height = 1100;
-            const ctx = canvas.getContext('2d');
-            
-            if (ctx) {
-                // Create a nice-looking PDF preview
-                ctx.fillStyle = '#f8f9fa';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                // Header area
-                ctx.fillStyle = '#4263eb';
-                ctx.fillRect(0, 0, canvas.width, 120);
-                
-                // Title
-                ctx.fillStyle = 'white';
-                ctx.font = 'bold 28px Arial';
-                ctx.textAlign = 'left';
-                ctx.fillText('Resume', 40, 70);
-                
-                // File name
-                const displayName = file.name.length > 30 ? file.name.substring(0, 27) + '...' : file.name;
-                ctx.font = '16px Arial';
-                ctx.fillText(displayName, 40, 100);
-                
-                // Create lines to represent content
-                ctx.fillStyle = '#dee2e6';
-                for (let i = 0; i < 8; i++) {
-                    const y = 180 + (i * 50);
-                    ctx.fillRect(40, y, canvas.width - 80, 24);
-                    if (i < 6) {
-                        ctx.fillRect(40, y + 30, (canvas.width - 80) / 2, 12);
-                    }
+            // Try to convert using PDF.js first
+            let imageFile;
+            try {
+                const result = await convertPdfToImage(file);
+                if (result.file && result.imageUrl) {
+                    imageFile = result.file;
+                    console.log('PDF converted to image successfully');
+                } else {
+                    throw new Error('PDF.js conversion failed, using fallback');
                 }
+            } catch (conversionError) {
+                console.warn('PDF.js conversion failed, using fallback method', conversionError);
+                
+                // Fallback to canvas-based placeholder
+                const canvas = document.createElement('canvas');
+                canvas.width = 800;
+                canvas.height = 1100;
+                const ctx = canvas.getContext('2d');
+                
+                if (ctx) {
+                    // Create a professional-looking PDF preview
+                    // White background
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Add a subtle border
+                    ctx.strokeStyle = '#e5e7eb';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(5, 5, canvas.width - 10, canvas.height - 10);
+                    
+                    // Add file info at top
+                    ctx.fillStyle = '#4263eb';
+                    ctx.font = 'bold 24px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('Resume Preview', canvas.width/2, 50);
+                    
+                    // File name
+                    const displayName = file.name.length > 40 ? file.name.substring(0, 37) + '...' : file.name;
+                    ctx.fillStyle = '#6b7280';
+                    ctx.font = '16px Arial';
+                    ctx.fillText(displayName, canvas.width/2, 80);
+                    
+                    // Add some placeholder content that looks like a resume
+                    ctx.textAlign = 'left';
+                    
+                    // Name section
+                    ctx.fillStyle = '#111827';
+                    ctx.font = 'bold 28px Arial';
+                    ctx.fillText('JOHN DOE', 60, 150);
+                    
+                    // Contact info
+                    ctx.fillStyle = '#6b7280';
+                    ctx.font = '14px Arial';
+                    ctx.fillText('john.doe@example.com | (555) 123-4567 | linkedin.com/in/johndoe', 60, 180);
+                    
+                    // Section headers and content
+                    const addSection = (title: string, y: number) => {
+                        ctx.fillStyle = '#111827';
+                        ctx.font = 'bold 20px Arial';
+                        ctx.fillText(title, 60, y);
+                        
+                        // Horizontal line
+                        ctx.strokeStyle = '#d1d5db';
+                        ctx.beginPath();
+                        ctx.moveTo(60, y + 10);
+                        ctx.lineTo(canvas.width - 60, y + 10);
+                        ctx.stroke();
+                        
+                        // Content lines
+                        ctx.fillStyle = '#4b5563';
+                        ctx.font = '14px Arial';
+                        
+                        for (let i = 0; i < 3; i++) {
+                            const lineY = y + 40 + (i * 25);
+                            const width = Math.random() * 300 + 400;
+                            ctx.fillRect(60, lineY, width, 2);
+                            
+                            // Add bullet points for some sections
+                            if (title === 'EXPERIENCE' || title === 'EDUCATION') {
+                                for (let j = 0; j < 2; j++) {
+                                    const bulletY = lineY + 12 + (j * 18);
+                                    // Bullet
+                                    ctx.beginPath();
+                                    ctx.arc(70, bulletY, 3, 0, Math.PI * 2);
+                                    ctx.fill();
+                                    // Line after bullet
+                                    const bulletWidth = Math.random() * 250 + 300;
+                                    ctx.fillRect(80, bulletY, bulletWidth, 1);
+                                }
+                            }
+                        }
+                    };
+                    
+                    // Add sections
+                    addSection('SUMMARY', 220);
+                    addSection('EXPERIENCE', 350);
+                    addSection('EDUCATION', 550);
+                    addSection('SKILLS', 750);
+                    addSection('PROJECTS', 900);
+                }
+                
+                // Convert canvas to blob
+                const blob = await new Promise<Blob | null>((resolve) => {
+                    canvas.toBlob((b) => resolve(b), 'image/png', 1.0);
+                });
+                
+                if (!blob) {
+                    setStatusText('Error: Failed to generate preview image');
+                    return;
+                }
+                
+                // Create an image file for the thumbnail
+                imageFile = new File([blob], file.name.replace(/\.pdf$/i, '') + '.png', { type: 'image/png' });
             }
-            
-            // Convert canvas to blob
-            const blob = await new Promise<Blob | null>((resolve) => {
-                canvas.toBlob((b) => resolve(b), 'image/png', 1.0);
-            });
-            
-            if (!blob) {
-                setStatusText('Error: Failed to generate preview image');
-                return;
-            }
-            
-            // Create an image file for the thumbnail
-            const imageFile = new File([blob], file.name.replace(/\.pdf$/i, '') + '.png', { type: 'image/png' });
             
             // Upload the image
             setStatusText('Uploading the preview image...');

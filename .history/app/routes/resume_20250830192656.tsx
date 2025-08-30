@@ -66,19 +66,12 @@ const Resume = () => {
         const imageUrl = URL.createObjectURL(imageBlob);
         setImageUrl(imageUrl);
         console.log('Image URL set:', imageUrl);
-        
-        // Set feedback data
-        setFeedback(data.feedback);
-        console.log('Feedback data loaded:', data.feedback);
-        
-        console.log('Resume data fully loaded:', { resumeUrl, imageUrl, feedback: data.feedback });
-      } catch (error) {
-        console.error('Error loading resume data:', error);
-      }
+      setFeedback(data.feedback);
+
+      console.log({resumeUrl,imageUrl, feedback:data.feedback})
     };
-    
-    loadResume();
-  }, [id, fs, kv]);
+  loadResume();
+  }, [id]);
 
   return (
     <main className="!pt-0">
